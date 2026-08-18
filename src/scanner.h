@@ -21,6 +21,7 @@ typedef enum token_types {
 } token;
 
 extern char token_buffer[];
+extern int lexical_errors;
 
 token scanner(void);
 
