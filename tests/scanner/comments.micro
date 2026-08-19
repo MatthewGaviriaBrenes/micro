@@ -1,0 +1,9 @@
+begin
+    -- Este es un comentario
+    read(A);
+
+    -- Otro comentario
+    A := 10;
+
+    write(A);
+end
