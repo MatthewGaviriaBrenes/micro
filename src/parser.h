@@ -12,6 +12,7 @@ extern token current_token;
  * Number of syntax errors found by the parser
  */
 extern int syntax_errors;
+void syntax_error_expected(token expected, token actual);
 
 
 /*
