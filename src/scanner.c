@@ -8,16 +8,12 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-
 #include "scanner.h"
 
 #define TOKEN_BUFFER_SIZE 256
-
 char token_buffer[TOKEN_BUFFER_SIZE];
-
 static int token_buffer_index = 0;
 int lexical_errors = 0;
-
 
 /*
  * Adds one character to token_buffer
@@ -30,7 +26,6 @@ static void buffer_char(int c)
     }
 }
 
-
 /*
  * Clears token_buffer
  */
@@ -39,7 +34,6 @@ static void clear_buffer(void)
     token_buffer_index = 0;
     token_buffer[0] = '\0';
 }
-
 
 /*
  * Checks whether token_buffer contains a reserved word
@@ -61,7 +55,6 @@ static token check_reserved(void)
     return ID;
 }
 
-
 /*
  * Reports a lexical error
  */
@@ -78,7 +71,6 @@ static void lexical_error(int c)
                 c);
     }
 }
-
 
 /*
  * Returns the next token from the input
@@ -102,8 +94,6 @@ token scanner(void)
         }
 
         /*
-         * Identifier or reserved word
-         *
          * Identifiers may contain letters, digits and underscores,
          * but must begin with a letter
          */
@@ -116,17 +106,13 @@ token scanner(void)
 
             while (1) {
                 c = getchar();
-
                 if (isalnum((unsigned char)c) || c == '_') {
-
                     identifier_length++;
-
                     if (identifier_length <= MAX_IDENTIFIER_LENGTH) {
                         buffer_char(c);
                     } else {
                         identifier_too_long = 1;
                     }
-
                 } else {
                     break;
                 }
@@ -154,12 +140,9 @@ token scanner(void)
          * Integer literal
          */
         if (isdigit((unsigned char)in_char)) {
-
             buffer_char(in_char);
-
             while (1) {
                 c = getchar();
-
                 if (isdigit((unsigned char)c)) {
                     buffer_char(c);
                 } else {
@@ -213,13 +196,10 @@ token scanner(void)
          * Assignment operator :=
          */
         if (in_char == ':') {
-
             c = getchar();
-
             if (c == '=') {
                 return ASSIGNOP;
             }
-
             if (c != EOF) {
                 ungetc(c, stdin);
             }
@@ -236,21 +216,16 @@ token scanner(void)
         if (in_char == '-') {
 
             c = getchar();
-
             if (c == '-') {
-
                 while ((c = getchar()) != '\n' && c != EOF) {
                     /* Skip comment */
                 }
-
                 continue;
-
             } else {
 
                 if (c != EOF) {
                     ungetc(c, stdin);
                 }
-
                 return MINUSOP;
             }
         }
@@ -260,6 +235,5 @@ token scanner(void)
          */
         lexical_error(in_char);
     }
-
     return SCANEOF;
 }

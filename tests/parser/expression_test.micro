@@ -1,0 +1,5 @@
+begin
+    A := 10 + 20 - 5;
+    B := A + 10;
+    write(B);
+end

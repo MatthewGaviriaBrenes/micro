@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "scanner.h"
+#include "semantics.h"
 
 /*
  * Current token being analyzed by the parser
@@ -14,12 +15,10 @@ extern token current_token;
 extern int syntax_errors;
 void syntax_error_expected(token expected, token actual);
 
-
 /*
  * Main parser entry point
  */
 void system_goal(void);
-
 
 /*
  * Structural grammar routines
@@ -30,16 +29,12 @@ void statement(void);
 void id_list(void);
 void expr_list(void);
 
-
 /*
  * Expression routines
- *
- * These will be completed by Persona B
  */
-void expression(void);
-void primary(void);
-void add_op(void);
-
+SemanticValue expression(void);
+SemanticValue primary(void);
+int add_op(void);
 
 /*
  * Parser utility functions
