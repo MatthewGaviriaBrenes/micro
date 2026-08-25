@@ -72,9 +72,7 @@ static void generate_data_section(void)
     fprintf(output_file, "input_format: .string \"%%d\"\n");
     fprintf(output_file, "output_format: .string \"%%d\\n\"\n");
 
-    /*
-     * Declare all identifiers and temporaries.
-     */
+    // Declare all IDs and temporaries
     for (i = 0; i < symbol_count; i++) {
 
         fprintf(output_file,
@@ -98,18 +96,15 @@ void codegen_init(const char *filename)
     temp_count = 0;
 
 
-    //Begin the text section.
-     
+    //start .section .text
     fprintf(output_file, ".section .text\n");
 
     
-    //Make main visible to the linker.
-    
+    //Main visible to linker
     fprintf(output_file, ".globl main\n");
 
     
-    //Program entry point.
-    
+    //entry point
     fprintf(output_file, "main:\n");
 }
 
@@ -123,20 +118,6 @@ void codegen_end(void)
     //.section .data  
     generate_data_section();
 }
-/*    
-    generate_data_section();
-
-    //.section .text     
-    fprintf(output_file, "\n.section .text\n");
-    fprintf(output_file, ".globl main\n");
-    fprintf(output_file, "main:\n"); //Assembly main
-
-    //return 0 = end program
-    fprintf(output_file, "    movl $0, %%eax\n");
-    fprintf(output_file, "    ret\n");
-
-
-}*/
 
 //Close output file------------------------------------------
 void codegen_close(void)
@@ -166,8 +147,6 @@ expr_rec process_id(const char *name)
 
     return result;
 }
-
-
 
 //lit processing---------------------------------------------
 expr_rec process_lit(int value)
@@ -201,7 +180,6 @@ char *get_temp(void)
 void assign(expr_rec target, expr_rec source)
 {
     //store results in target ID
-
     if (source.kind == LITERALEXPR) {
 
         fprintf(output_file,
