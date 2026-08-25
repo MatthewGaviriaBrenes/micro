@@ -44,7 +44,7 @@ void codegen_close(void);
 void assign(expr_rec target, expr_rec source);
 
 // codegen for add/sub
-expr_rec gen_infix(expr_rec left, token op, expr_rec right);
+expr_rec generate_infix(expr_rec left, token op, expr_rec right);
 
 //Code for READ
 void read_id(expr_rec variable);

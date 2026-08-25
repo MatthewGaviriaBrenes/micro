@@ -7,13 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <symtab.c>
 #include "codegen.h"
 
 #define MAX_SYMBOLS 1024
 
 //Symbol table
-static char symbol_table[MAX_SYMBOLS][MAXIDLEN];
+//static char symbol_table[MAX_SYMBOLS][MAXIDLEN];
 static int symbol_count = 0;
 
 //Output x86 file
@@ -195,7 +195,7 @@ void assign(expr_rec target, expr_rec source)
 }
 
 //inflix expression gen---------------------------------------
-expr_rec gen_infix(expr_rec left, token op, expr_rec right)
+expr_rec generate_infix(expr_rec left, token op, expr_rec right)
 {
     expr_rec result;
     char *temp;
@@ -311,4 +311,3 @@ void write_expr(expr_rec expression)
     fprintf(output_file,
             "    call printf@PLT\n");
 }
-

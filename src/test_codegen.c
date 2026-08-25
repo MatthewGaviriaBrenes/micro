@@ -19,7 +19,7 @@ int main(void)
 
     /* B := A + 5 */
     five = process_lit(5);
-    result = gen_infix(a, PLUSOP, five);
+    result = generate_infix(a, PLUSOP, five);
     assign(b, result);
 
     /* write(B) */
