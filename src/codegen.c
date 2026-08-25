@@ -7,119 +7,94 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <symtab.c>
+
 #include "codegen.h"
 
-#define MAX_SYMBOLS 1024
-
-//Symbol table
-//static char symbol_table[MAX_SYMBOLS][MAXIDLEN];
-static int symbol_count = 0;
-
-//Output x86 file
+/*
+ * Output assembly file
+ */
 static FILE *output_file = NULL;
 
-//count temporary variables
+/*
+ * Number of temporary variables
+ */
 static int temp_count = 0;
 
-//lookup in symbol table---------------------------------------
-//1 if the symbol exists
-//0 if it doesnt exist
-static int symbol_exists(const char *name)
-{
-    int i;
 
-    for (i = 0; i < symbol_count; i++) {
-
-        if (strcmp(symbol_table[i], name) == 0) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-//adds symbol to table----------------------------------------
-static void add_symbol(const char *name)
-{
-    if (symbol_exists(name)) {
-        return;
-    }
-
-    if (symbol_count >= MAX_SYMBOLS) {
-        fprintf(stderr,
-                "Error: Exceed max num of symbols.\n");
-
-        exit(EXIT_FAILURE);
-    }
-
-    strncpy(symbol_table[symbol_count],
-            name,
-            MAXIDLEN - 1);
-
-    symbol_table[symbol_count][MAXIDLEN - 1] = '\0';
-
-    symbol_count++;
-}
-
-// Generates .section .data with and variables-----------------
+/*
+ * Generate the data section
+ */
 static void generate_data_section(void)
 {
     int i;
 
     fprintf(output_file, "\n.section .data\n");
 
-    fprintf(output_file, "input_format: .string \"%%d\"\n");
-    fprintf(output_file, "output_format: .string \"%%d\\n\"\n");
+    fprintf(output_file,
+            "input_format: .string \"%%d\"\n");
 
-    // Declare all IDs and temporaries
-    for (i = 0; i < symbol_count; i++) {
+    fprintf(output_file,
+            "output_format: .string \"%%d\\n\"\n");
 
+    for (i = 0; i < symtab_count(); i++) {
         fprintf(output_file,
                 "%s: .long 0\n",
-                symbol_table[i]);
+                symtab_name(i));
     }
 }
 
-//codegen init-----------------------------------------------
+
+/*
+ * Start code generation
+ */
 void codegen_init(const char *filename)
 {
     output_file = fopen(filename, "w");
 
-    if(output_file == NULL){
-        fprintf(stderr, 
-            "ERROR: Assembly file could not be created.\n");
+    if (output_file == NULL) {
+        fprintf(stderr,
+                "Error: could not create assembly file\n");
+
         exit(EXIT_FAILURE);
     }
 
-    symbol_count = 0;
     temp_count = 0;
 
+    fprintf(output_file,
+            ".section .text\n");
 
-    //start .section .text
-    fprintf(output_file, ".section .text\n");
+    fprintf(output_file,
+            ".globl main\n");
 
-    
-    //Main visible to linker
-    fprintf(output_file, ".globl main\n");
+    fprintf(output_file,
+            ".extern printf\n");
 
-    
-    //entry point
-    fprintf(output_file, "main:\n");
+    fprintf(output_file,
+            ".extern scanf\n");
+
+    fprintf(output_file,
+            "main:\n");
 }
 
-//codegen end------------------------------------------------
-void codegen_end(void)
-{   
-    //return 0 = end program
-    fprintf(output_file, "\n    movl $0, %%eax\n");
-    fprintf(output_file, "    ret\n");
 
-    //.section .data  
+/*
+ * Finish code generation
+ */
+void codegen_end(void)
+{
+    fprintf(output_file,
+            "\n    movl $0, %%eax\n");
+
+    fprintf(output_file,
+            "    ret\n");
+
     generate_data_section();
 }
 
-//Close output file------------------------------------------
+
+/*
+ * Close assembly file
+ */
 void codegen_close(void)
 {
     if (output_file != NULL) {
@@ -128,27 +103,34 @@ void codegen_close(void)
     }
 }
 
-//ID processing-----------------------------------------------
+
+/*
+ * Process an identifier
+ */
 expr_rec process_id(const char *name)
 {
     expr_rec result;
 
-    //Register identifier
-    add_symbol(name);
+    /*
+     * Register identifier in symbol table
+     */
+    check_id(name);
 
-    //Build expression
     result.kind = IDEXPR;
 
     strncpy(result.name,
             name,
-            MAXIDLEN - 1);
+            MAXIDLEN);
 
-    result.name[MAXIDLEN - 1] = '\0';
+    result.name[MAXIDLEN] = '\0';
 
     return result;
 }
 
-//lit processing---------------------------------------------
+
+/*
+ * Process an integer literal
+ */
 expr_rec process_lit(int value)
 {
     expr_rec result;
@@ -159,80 +141,103 @@ expr_rec process_lit(int value)
     return result;
 }
 
-//Temporary generation---------------------------------------
+
+/*
+ * Generate a new temporary variable
+ */
 char *get_temp(void)
 {
-    static char temp_name[MAXIDLEN];
+    static char temp_name[MAXIDLEN + 1];
 
     temp_count++;
 
     snprintf(temp_name,
-             MAXIDLEN,
+             sizeof(temp_name),
              "_temp%d",
              temp_count);
 
-    add_symbol(temp_name);
+    check_id(temp_name);
 
     return temp_name;
 }
 
-//Assignment---------------------------------------------
+
+/*
+ * Generate assignment code
+ */
 void assign(expr_rec target, expr_rec source)
 {
-    //store results in target ID
     if (source.kind == LITERALEXPR) {
 
         fprintf(output_file,
-        "    movl $%d, %%eax\n", source.val);
+                "    movl $%d, %%eax\n",
+                source.val);
 
     } else {
 
-       fprintf(output_file,
-        "    movl %s, %%eax\n", source.name);
+        fprintf(output_file,
+                "    movl %s(%%rip), %%eax\n",
+                source.name);
     }
+
     fprintf(output_file,
-        "    movl %%eax, %s\n", target.name);
+            "    movl %%eax, %s(%%rip)\n",
+            target.name);
 }
 
-//inflix expression gen---------------------------------------
-expr_rec generate_infix(expr_rec left, token op, expr_rec right)
+
+/*
+ * Generate code for addition and subtraction
+ */
+expr_rec generate_infix(expr_rec left,
+                        token op,
+                        expr_rec right)
 {
     expr_rec result;
     char *temp;
 
-    //new temporary forresult
     temp = get_temp();
 
     result.kind = TEMPEXPR;
 
-    strncpy(result.name, temp, MAXIDLEN - 1);
+    strncpy(result.name,
+            temp,
+            MAXIDLEN);
 
-    result.name[MAXIDLEN - 1] = '\0';
+    result.name[MAXIDLEN] = '\0';
 
-    //left operand in EAX.
+    /*
+     * Load left operand into EAX
+     */
     if (left.kind == LITERALEXPR) {
 
         fprintf(output_file,
-                "    movl $%d, %%eax\n",left.val);
+                "    movl $%d, %%eax\n",
+                left.val);
 
     } else {
 
         fprintf(output_file,
-                "    movl %s, %%eax\n", left.name);
+                "    movl %s(%%rip), %%eax\n",
+                left.name);
     }
 
-
-    //do operation
+    /*
+     * Apply operator
+     */
     if (op == PLUSOP) {
+
         if (right.kind == LITERALEXPR) {
 
             fprintf(output_file,
-                    "    addl $%d, %%eax\n", right.val);
+                    "    addl $%d, %%eax\n",
+                    right.val);
 
         } else {
 
             fprintf(output_file,
-                    "    addl %s, %%eax\n", right.name);
+                    "    addl %s(%%rip), %%eax\n",
+                    right.name);
         }
 
     } else if (op == MINUSOP) {
@@ -240,43 +245,47 @@ expr_rec generate_infix(expr_rec left, token op, expr_rec right)
         if (right.kind == LITERALEXPR) {
 
             fprintf(output_file,
-                    "    subl $%d, %%eax\n", right.val);
+                    "    subl $%d, %%eax\n",
+                    right.val);
 
         } else {
+
             fprintf(output_file,
-                    "    subl %s, %%eax\n", right.name);
+                    "    subl %s(%%rip), %%eax\n",
+                    right.name);
         }
 
     } else {
 
         fprintf(stderr,
-                "Error interno: operator not available.\n");
+                "Error interno: operador no soportado\n");
 
         exit(EXIT_FAILURE);
     }
 
-
-    //Store result in temporary.
+    /*
+     * Store result in temporary
+     */
     fprintf(output_file,
-        "    movl %%eax, %s\n",
+            "    movl %%eax, %s(%%rip)\n",
             result.name);
 
     return result;
 }
 
-//read gen---------------------------------------------------
+
+/*
+ * Generate READ code
+ */
 void read_id(expr_rec variable)
 {
-    //address of input_format.
     fprintf(output_file,
             "    leaq input_format(%%rip), %%rdi\n");
 
-    //address of the variable.
     fprintf(output_file,
             "    leaq %s(%%rip), %%rsi\n",
             variable.name);
 
-    //Clear EAX
     fprintf(output_file,
             "    movl $0, %%eax\n");
 
@@ -284,14 +293,15 @@ void read_id(expr_rec variable)
             "    call scanf@PLT\n");
 }
 
-//write gen-------------------------------------------------
+
+/*
+ * Generate WRITE code
+ */
 void write_expr(expr_rec expression)
 {
-    //output_format adress
     fprintf(output_file,
             "    leaq output_format(%%rip), %%rdi\n");
 
-    //int to print
     if (expression.kind == LITERALEXPR) {
 
         fprintf(output_file,
@@ -299,12 +309,12 @@ void write_expr(expr_rec expression)
                 expression.val);
 
     } else {
+
         fprintf(output_file,
-                "    movl %s, %%esi\n",
+                "    movl %s(%%rip), %%esi\n",
                 expression.name);
     }
 
-    // Clear EAX
     fprintf(output_file,
             "    movl $0, %%eax\n");
 

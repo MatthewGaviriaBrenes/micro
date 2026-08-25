@@ -2,14 +2,7 @@
 #define CODEGEN_H
 
 #include "scanner.h"
-
-/*
- * Micro Compiler
- * File: codegen.h
- * Responsibility: Matthew
- */
-
-#define MAXIDLEN 33
+#include "symtab.h"
 
 //Expression types
 typedef enum {
@@ -40,6 +33,15 @@ void codegen_end(void);
 
 void codegen_close(void);
 
+//Process ID
+expr_rec process_id(const char *name);
+
+//Process int literal
+expr_rec process_lit(int value);
+
+//new temporary variable
+char *get_temp(void);
+
 // codegen for an assignment
 void assign(expr_rec target, expr_rec source);
 
@@ -51,17 +53,5 @@ void read_id(expr_rec variable);
 
 //Code for WRITE
 void write_expr(expr_rec expression);
-
-
-//Semantics
-
-//Process ID
-expr_rec process_id(const char *name);
-
-//Process int literal
-expr_rec process_lit(int value);
-
-//new temporary variable
-char *get_temp(void);
 
 #endif
