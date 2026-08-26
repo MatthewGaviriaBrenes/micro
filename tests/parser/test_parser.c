@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "../../src/parser.h"
-
+#include "../../src/codegen.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,13 +20,17 @@ int main(int argc, char *argv[])
 
     if (input == NULL) {
         perror("No se pudo abrir el archivo");
-
         return EXIT_FAILURE;
     }
+
+    codegen_init("expression_test.s");
 
     current_token = scanner();
 
     system_goal();
+
+    codegen_end();
+    codegen_close();
 
     fclose(input);
 

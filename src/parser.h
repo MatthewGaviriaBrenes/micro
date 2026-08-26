@@ -3,6 +3,7 @@
 
 #include "scanner.h"
 #include "semantics.h"
+#include "codegen.h"
 
 /*
  * Current token being analyzed by the parser
@@ -32,9 +33,9 @@ void expr_list(void);
 /*
  * Expression routines
  */
-SemanticValue expression(void);
-SemanticValue primary(void);
-int add_op(void);
+expr_rec expression(void);
+expr_rec primary(void);
+token add_op(void);
 
 /*
  * Parser utility functions

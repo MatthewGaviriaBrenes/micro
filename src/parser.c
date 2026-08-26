@@ -55,7 +55,6 @@ void syntax_error(token actual)
             token_name(actual));
 }
 
-
 /* Report an unexpected token with the expected token */
 void syntax_error_expected(token expected, token actual)
 {
@@ -135,24 +134,39 @@ void statement(void)
 {
     switch (current_token) {
         case ID:
+        {
+            expr_rec target;
+            expr_rec result;
+
+            target = process_id(token_buffer);
             match(ID);
+
             if (current_token != ASSIGNOP) {
                 syntax_error_expected(ASSIGNOP, current_token);
                 synchronize_statement();
+
                 if (current_token == SEMICOLON) {
                     match(SEMICOLON);
                 }
+
                 return;
             }
+
             match(ASSIGNOP);
-            expression();
+
+            result = expression();
+
+            assign(target, result);
 
             if (current_token != SEMICOLON) {
                 syntax_error_expected(SEMICOLON, current_token);
                 return;
             }
+
             match(SEMICOLON);
+
             break;
+        }
 
         case READ:
             match(READ);
@@ -208,20 +222,23 @@ void statement(void)
 /* Parse a list of identifiers */
 void id_list(void)
 {
-    if (current_token == ID) {
-        check_identifier(token_buffer);
-        match(ID);
-    } else {
-        match(ID);
-        return;
+    expr_rec variable;
+
+    variable = process_id(token_buffer);
+    match(ID);
+
+    if (codegen_is_active()) {
+        read_id(variable);
     }
+
     while (current_token == COMMA) {
         match(COMMA);
-        if (current_token == ID) {
-            check_identifier(token_buffer);
-            match(ID);
-        } else {
-            match(ID);
+
+        variable = process_id(token_buffer);
+        match(ID);
+
+        if (codegen_is_active()) {
+            read_id(variable);
         }
     }
 }
@@ -229,73 +246,107 @@ void id_list(void)
 /* Parse a list of expressions */
 void expr_list(void)
 {
-    expression();
+    expr_rec result;
+
+    result = expression();
+
+    if (codegen_is_active()) {
+        write_expr(result);
+    }
+
     while (current_token == COMMA) {
         match(COMMA);
-        expression();
+
+        result = expression();
+
+        if (codegen_is_active()) {
+            write_expr(result);
+        }
     }
 }
 
 /* Parse an expression */
-SemanticValue expression(void)
+expr_rec expression(void)
 {
-    SemanticValue left;
-    SemanticValue right;
-    int operator;
+    expr_rec left;
+    expr_rec right;
+    SemanticValue left_sem;
+    SemanticValue right_sem;
+    token op;
+
     left = primary();
+
     while (current_token == PLUSOP ||
             current_token == MINUSOP) {
-        operator = add_op();
+
+        op = add_op();
         right = primary();
-        left = gen_infix(left, operator, right);
+
+        /*
+         * Constant folding
+         */
+        if (left.kind == LITERALEXPR &&
+            right.kind == LITERALEXPR) {
+
+            left_sem = make_constant(left.val);
+            right_sem = make_constant(right.val);
+
+            left_sem = gen_infix(left_sem,
+                                op == PLUSOP ? '+' : '-',
+                                right_sem);
+
+            if (left_sem.is_constant) {
+                left = process_lit(left_sem.value);
+            }
+
+        } else {
+
+            /*
+             * Generate runtime expression
+             */
+            left = generate_infix(left, op, right);
+        }
     }
+
     return left;
 }
 
 /* Parse a primary expression */
-SemanticValue primary(void)
+expr_rec primary(void)
 {
-    SemanticValue result;
-    result.is_constant = 0;
-    result.value = 0;
-    
-    if (current_token == INTLITERAL) {
-        result = make_constant(atoi(token_buffer));
-        match(INTLITERAL);
-        return result;
-    }
+    expr_rec result;
 
     if (current_token == ID) {
-        check_identifier(token_buffer);
+        result = process_id(token_buffer);
         match(ID);
         return result;
     }
 
-    if (current_token == LPAREN) {
-        match(LPAREN);
-        result = expression();
-        match(RPAREN);
+    if (current_token == INTLITERAL) {
+        result = process_lit(atoi(token_buffer));
+        match(INTLITERAL);
         return result;
     }
 
     syntax_error(current_token);
-    return result;
+    return process_lit(0);
 }
 
-
 /* Parse an addition or subtraction operator */
-int add_op(void)
+token add_op(void)
 {
+    token operator;
     if (current_token == PLUSOP) {
+        operator = PLUSOP;
         match(PLUSOP);
-        return '+';
+        return operator;
     }
 
     if (current_token == MINUSOP) {
+        operator = MINUSOP;
         match(MINUSOP);
-        return '-';
+        return operator;
     }
-
     syntax_error(current_token);
-    return 0;
+    return PLUSOP;
 }

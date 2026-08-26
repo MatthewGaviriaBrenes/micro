@@ -1,7 +1,7 @@
 /*
  * Micro Compiler
  * File: symtab.c
- * Responsibility: Persona B
+ * Responsibility: Matthew
  *
  */
 
@@ -12,7 +12,7 @@
 
 /* Symbol table entry */
 typedef struct {
-    char name[MAXIDLEN + 1];
+    char name[MAXIDLEN];
 } Symbol;
 
 /* Symbol table storage */
@@ -65,7 +65,7 @@ int enter(const char *name)
     strncpy(symbol_table[symbol_count].name,
             name,
             MAXIDLEN);
-    symbol_table[symbol_count].name[MAXIDLEN] = '\0';
+    symbol_table[symbol_count].name[MAXIDLEN - 1] = '\0';
     symbol_count++;
     return 1;
 }
@@ -81,4 +81,18 @@ void check_id(const char *name)
     if (!lookup(name)) {
         enter(name);
     }
+}
+
+int symtab_count(void)
+{
+    return symbol_count;
+}
+
+const char *symtab_name(int index)
+{
+    if (index < 0 || index >= symbol_count) {
+        return NULL;
+    }
+
+    return symbol_table[index].name;
 }

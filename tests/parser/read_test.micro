@@ -1,0 +1,4 @@
+begin
+    read(A);
+    write(A);
+end
