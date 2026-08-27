@@ -100,6 +100,10 @@ void codegen_end(void)
                 "    ret\n");
 
         generate_data_section();
+
+        /* Mark stack as non-executable to silence linker warning */
+        fprintf(output_file,
+                "\n.section .note.GNU-stack,\"\",@progbits\n");
 }
 
 /*

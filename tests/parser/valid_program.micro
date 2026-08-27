@@ -1,5 +1,4 @@
 begin
-    read(A, B);
-    C := 10;
-    write(C);
+    read(A);
+    write(A);
 end
