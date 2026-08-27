@@ -77,6 +77,12 @@ void codegen_init(const char *filename)
 
         fprintf(output_file,
                 "main:\n");
+
+        fprintf(output_file,
+                "    pushq %%rbp\n");
+
+        fprintf(output_file,
+                "    movq %%rsp, %%rbp\n");
 }
 
 /*
@@ -86,6 +92,9 @@ void codegen_end(void)
 {
         fprintf(output_file,
                 "\n    movl $0, %%eax\n");
+
+        fprintf(output_file,
+                "    popq %%rbp\n");
 
         fprintf(output_file,
                 "    ret\n");
