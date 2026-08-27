@@ -1,23 +1,13 @@
-/*
- * Micro Compiler
- * File: codegen.c
- * Responsibility: Matthew
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "codegen.h"
 
-/*
- * Output assembly file
- */
+/* Output assembly file */
 static FILE *output_file = NULL;
 
-/*
- * Number of temporary variables
- */
+/* Number of temporary variables */
 static int temp_count = 0;
 static int label_count = 0;
 
@@ -26,9 +16,7 @@ int codegen_is_active(void)
         return output_file != NULL;
 }
 
-/*
- * Generate the data section
- */
+/* Generate the data section */
 static void generate_data_section(void)
 {
         int i;
@@ -48,9 +36,7 @@ static void generate_data_section(void)
         }
 }
 
-/*
- * Start code generation
- */
+/* Start code generation */
 void codegen_init(const char *filename)
 {
         output_file = fopen(filename, "w");
@@ -86,9 +72,7 @@ void codegen_init(const char *filename)
                 "    movq %%rsp, %%rbp\n");
 }
 
-/*
- * Finish code generation
- */
+/* Finish code generation */
 void codegen_end(void)
 {
         fprintf(output_file,
@@ -102,14 +86,12 @@ void codegen_end(void)
 
         generate_data_section();
 
-        /* Mark stack as non-executable to silence linker warning */
+        /* Mark as non-executable to silence linker warning */
         fprintf(output_file,
                 "\n.section .note.GNU-stack,\"\",@progbits\n");
 }
 
-/*
- * Close assembly file
- */
+/* Close assembly file */
 void codegen_close(void)
 {
         if (output_file != NULL) {
@@ -118,16 +100,12 @@ void codegen_close(void)
         }
 }
 
-/*
- * Process an identifier
- */
+/* Process an identifier */
 expr_rec process_id(const char *name)
 {
         expr_rec result;
 
-        /*
-        * Register identifier in symbol table
-        */
+        /* Register identifier in symbol table */
         check_id(name);
 
         result.kind = IDEXPR;
@@ -138,22 +116,16 @@ expr_rec process_id(const char *name)
         return result;
 }
 
-/*
- * Process an integer literal
- */
+/* Process an integer literal */
 expr_rec process_lit(int value)
 {
         expr_rec result;
-
         result.kind = LITERALEXPR;
         result.val = value;
-
         return result;
 }
 
-/*
- * Generate a new temporary variable
- */
+/* Generate a new temporary variable */
 char *get_temp(void)
 {
         static char temp_name[MAXIDLEN];
@@ -170,9 +142,7 @@ char *get_temp(void)
         return temp_name;
 }
 
-/*
- * Generate assignment code
- */
+/* Generate assignment code */
 void assign(expr_rec target, expr_rec source)
 {
         if (output_file == NULL) {
@@ -197,18 +167,13 @@ void assign(expr_rec target, expr_rec source)
                 target.name);
 }
 
-/*
- * Generate code for addition and subtraction
- */
+/* Generate code for addition and subtraction */
 expr_rec generate_infix(expr_rec left, token op, expr_rec right)
 {
         expr_rec result;
         char *temp;
-
         temp = get_temp();
-
         result.kind = TEMPEXPR;
-
         strncpy(result.name, temp, MAXIDLEN - 1);
         result.name[MAXIDLEN - 1] = '\0';
 
@@ -216,9 +181,7 @@ expr_rec generate_infix(expr_rec left, token op, expr_rec right)
         return result;
         }
 
-        /*
-        * Load left operand into EAX
-        */
+        /* Load left operand into EAX */
         if (left.kind == LITERALEXPR) {
                 fprintf(output_file,
                         "    movl $%d, %%eax\n",
@@ -230,9 +193,7 @@ expr_rec generate_infix(expr_rec left, token op, expr_rec right)
                         left.name);
         }
 
-        /*
-        * Apply operator
-        */
+        /* Apply operator */
         if (op == PLUSOP) {
 
                 if (right.kind == LITERALEXPR) {
@@ -267,23 +228,17 @@ expr_rec generate_infix(expr_rec left, token op, expr_rec right)
 
                 fprintf(stderr,
                         "Error interno: operador no soportado\n");
-
                 exit(EXIT_FAILURE);
         }
 
-        /*
-        * Store result in temporary
-        */
+        /* Store result in temporary */
         fprintf(output_file,
                 "    movl %%eax, %s(%%rip)\n",
                 result.name);
-
         return result;
 }
 
-/*
- * Load an expr_rec's value into %eax
- */
+/* Load an expr_rec's value into %eax */
 static void load_eax(expr_rec value)
 {
         if (value.kind == LITERALEXPR) {
@@ -297,17 +252,13 @@ static void load_eax(expr_rec value)
         }
 }
 
-/*
- * Generate code for conditional expression
- */
+/* Generate code for conditional expression */
 expr_rec generate_conditional(expr_rec cond, expr_rec true_val, expr_rec false_val)
 {
         expr_rec result;
         char *temp;
         int label_id;
-
         temp = get_temp();
-
         result.kind = TEMPEXPR;
         strncpy(result.name, temp, MAXIDLEN - 1);
         result.name[MAXIDLEN - 1] = '\0';
@@ -357,9 +308,7 @@ expr_rec generate_conditional(expr_rec cond, expr_rec true_val, expr_rec false_v
         return result;
 }
 
-/*
- * Generate READ code
- */
+/* Generate READ code */
 void read_id(expr_rec variable)
 {
         fprintf(output_file,
@@ -376,9 +325,7 @@ void read_id(expr_rec variable)
                 "    call scanf@PLT\n");
 }
 
-/*
- * Generate WRITE code
- */
+/* Generate WRITE code */
 void write_expr(expr_rec expression)
 {
         fprintf(output_file,

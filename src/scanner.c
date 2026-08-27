@@ -1,10 +1,3 @@
-/*
- * Micro Compiler
- * File: scanner.c
- * Responsibility: Felipe B.
- *
- */
-
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -15,9 +8,7 @@ char token_buffer[TOKEN_BUFFER_SIZE];
 static int token_buffer_index = 0;
 int lexical_errors = 0;
 
-/*
- * Adds one character to token_buffer
- */
+/* Adds one character to token_buffer */
 static void buffer_char(int c)
 {
     if (token_buffer_index < TOKEN_BUFFER_SIZE - 1) {
@@ -26,18 +17,14 @@ static void buffer_char(int c)
     }
 }
 
-/*
- * Clears token_buffer
- */
+/* Clears token_buffer */
 static void clear_buffer(void)
 {
     token_buffer_index = 0;
     token_buffer[0] = '\0';
 }
 
-/*
- * Checks whether token_buffer contains a reserved word
- */
+/* Checks whether token_buffer contains a reserved word */
 static token check_reserved(void)
 {
     if (strcmp(token_buffer, "begin") == 0)
@@ -55,9 +42,7 @@ static token check_reserved(void)
     return ID;
 }
 
-/*
- * Reports a lexical error
- */
+/* Reports a lexical error */
 static void lexical_error(int c)
 {
     lexical_errors++;
@@ -72,9 +57,7 @@ static void lexical_error(int c)
     }
 }
 
-/*
- * Returns the next token from the input
- */
+/* Returns the next token from the input */
 token scanner(void)
 {
     int in_char;
@@ -83,25 +66,18 @@ token scanner(void)
     int identifier_too_long;
 
     clear_buffer();
-
     while ((in_char = getchar()) != EOF) {
 
-        /*
-         * Ignore whitespace
-         */
+        /* Ignore whitespace */
         if (isspace((unsigned char)in_char)) {
             continue;
         }
 
-        /*
-         * Identifiers may contain letters, digits and underscores,
-         * but must begin with a letter
-         */
+        /* Identifiers may contain letters, digits and underscores, but must begin with a letter */
         if (isalpha((unsigned char)in_char)) {
 
             identifier_length = 1;
             identifier_too_long = 0;
-
             buffer_char(in_char);
 
             while (1) {
@@ -129,16 +105,12 @@ token scanner(void)
                         "Error lexico: identificador demasiado largo "
                         "(maximo %d caracteres).\n",
                         MAX_IDENTIFIER_LENGTH);
-
                 continue;
             }
-
             return check_reserved();
         }
 
-        /*
-         * Integer literal
-         */
+        /* Integer literal */
         if (isdigit((unsigned char)in_char)) {
             buffer_char(in_char);
             while (1) {
@@ -157,51 +129,37 @@ token scanner(void)
             return INTLITERAL;
         }
 
-        /*
-         * Left parenthesis
-         */
+        /* Left parenthesis */
         if (in_char == '(') {
             return LPAREN;
         }
 
-        /*
-         * Right parenthesis
-         */
+        /* Right parenthesis */
         if (in_char == ')') {
             return RPAREN;
         }
 
-        /*
-         * Semicolon
-         */
+        /* Semicolon */
         if (in_char == ';') {
             return SEMICOLON;
         }
 
-        /*
-         * Comma
-         */
+        /* Comma */
         if (in_char == ',') {
             return COMMA;
         }
 
-        /*
-         * Addition operator
-         */
+        /* Addition operator */
         if (in_char == '+') {
             return PLUSOP;
         }
 
-        /*
-         * Bar operator for conditional expressions
-         */
+        /* Bar operator for conditional expressions */
         if (in_char == '|') {
             return BAROP;
         }
 
-        /*
-         * Assignment operator :=
-         */
+        /* Assignment operator := */
         if (in_char == ':') {
             c = getchar();
             if (c == '=') {
@@ -215,9 +173,7 @@ token scanner(void)
             continue;
         }
 
-        /*
-         * Minus operator or comment
-         *
+        /* Minus operator or comment
          * Comments begin with -- and continue to the end of the line
          */
         if (in_char == '-') {
@@ -237,9 +193,7 @@ token scanner(void)
             }
         }
 
-        /*
-         * Invalid character
-         */
+        /* Invalid character */
         lexical_error(in_char);
     }
     return SCANEOF;

@@ -20,4 +20,4 @@ int symtab_count(void);
 
 const char *symtab_name(int index);
 
-#endif
+#endif 

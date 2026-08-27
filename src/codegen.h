@@ -4,56 +4,56 @@
 #include "scanner.h"
 #include "symtab.h"
 
-//Expression types
+/* Expression types */
 typedef enum {
-    IDEXPR,         //ID
-    LITERALEXPR,    //int literal
-    TEMPEXPR        //temporary expression 
+    IDEXPR,         /* ID */
+    LITERALEXPR,    /* int literal */
+    TEMPEXPR        /* temporary expression  */
 } expr_kind;
 
-//Expression record
+/* Expression record */
 typedef struct {
     expr_kind kind;
 
     union {
-        char name[MAXIDLEN];  //ID or temporary
-        int val;              //int literal
+        char name[MAXIDLEN];  /* ID or temporary */
+        int val;              /* int literal */
     };
 } expr_rec;
 
-//codegen interface
+/* codegen interface */
 int codegen_is_active(void);
 
-//Start code generation
+/* Start code generation */
 void codegen_init(const char *filename);
 
-//End code generation
+/* End code generation */
 void codegen_end(void);
 
 void codegen_close(void);
 
-//Process ID
+/* Process ID */
 expr_rec process_id(const char *name);
 
-//Process int literal
+/* Process int literal */
 expr_rec process_lit(int value);
 
-//new temporary variable
+/* new temporary variable */
 char *get_temp(void);
 
-// codegen for an assignment
+/* codegen for an assignment */
 void assign(expr_rec target, expr_rec source);
 
-// codegen for add/sub
+/* codegen for add/sub */
 expr_rec generate_infix(expr_rec left, token op, expr_rec right);
 
-//Code for READ
+/* Code for READ */
 void read_id(expr_rec variable);
 
-//Code for WRITE
+/* Code for WRITE */
 void write_expr(expr_rec expression);
 
-//Code for conditional expressions
+/* Code for conditional expressions */
 expr_rec generate_conditional(expr_rec cond, expr_rec true_val, expr_rec false_val);
 
 #endif
