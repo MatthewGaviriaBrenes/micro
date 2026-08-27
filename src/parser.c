@@ -30,6 +30,7 @@ static const char *token_name(token t)
         case ASSIGNOP:    return "ASSIGNOP";
         case PLUSOP:      return "PLUSOP";
         case MINUSOP:     return "MINUSOP";
+        case BAROP:       return "BAROP";
         case SCANEOF:     return "SCANEOF";
         default:          return "UNKNOWN";
     }
@@ -326,6 +327,23 @@ expr_rec primary(void)
         result = process_lit(atoi(token_buffer));
         match(INTLITERAL);
         return result;
+    }
+
+    /* Conditional expression: ( E1 | E2 | E3 ) */
+    if (current_token == LPAREN) {
+        expr_rec cond;
+        expr_rec true_val;
+        expr_rec false_val;
+
+        match(LPAREN);
+        cond = expression();
+        match(BAROP);
+        true_val = expression();
+        match(BAROP);
+        false_val = expression();
+        match(RPAREN);
+
+        return generate_conditional(cond, true_val, false_val);
     }
 
     syntax_error(current_token);
