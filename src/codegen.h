@@ -53,4 +53,7 @@ void read_id(expr_rec variable);
 //Code for WRITE
 void write_expr(expr_rec expression);
 
+//Code for conditional expressions
+expr_rec generate_conditional(expr_rec cond, expr_rec true_val, expr_rec false_val);
+
 #endif

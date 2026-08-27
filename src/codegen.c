@@ -19,6 +19,7 @@ static FILE *output_file = NULL;
  * Number of temporary variables
  */
 static int temp_count = 0;
+static int label_count = 0;
 
 int codegen_is_active(void)
 {
@@ -77,6 +78,12 @@ void codegen_init(const char *filename)
 
         fprintf(output_file,
                 "main:\n");
+
+        fprintf(output_file,
+                "    pushq %%rbp\n");
+
+        fprintf(output_file,
+                "    movq %%rsp, %%rbp\n");
 }
 
 /*
@@ -88,9 +95,16 @@ void codegen_end(void)
                 "\n    movl $0, %%eax\n");
 
         fprintf(output_file,
+                "    popq %%rbp\n");
+
+        fprintf(output_file,
                 "    ret\n");
 
         generate_data_section();
+
+        /* Mark stack as non-executable to silence linker warning */
+        fprintf(output_file,
+                "\n.section .note.GNU-stack,\"\",@progbits\n");
 }
 
 /*
@@ -263,6 +277,82 @@ expr_rec generate_infix(expr_rec left, token op, expr_rec right)
         fprintf(output_file,
                 "    movl %%eax, %s(%%rip)\n",
                 result.name);
+
+        return result;
+}
+
+/*
+ * Load an expr_rec's value into %eax
+ */
+static void load_eax(expr_rec value)
+{
+        if (value.kind == LITERALEXPR) {
+                fprintf(output_file,
+                        "    movl $%d, %%eax\n",
+                        value.val);
+        } else {
+                fprintf(output_file,
+                        "    movl %s(%%rip), %%eax\n",
+                        value.name);
+        }
+}
+
+/*
+ * Generate code for conditional expression
+ */
+expr_rec generate_conditional(expr_rec cond, expr_rec true_val, expr_rec false_val)
+{
+        expr_rec result;
+        char *temp;
+        int label_id;
+
+        temp = get_temp();
+
+        result.kind = TEMPEXPR;
+        strncpy(result.name, temp, MAXIDLEN - 1);
+        result.name[MAXIDLEN - 1] = '\0';
+
+        if (output_file == NULL) {
+                return result;
+        }
+
+        label_id = ++label_count;
+
+        /* Evaluate condition */
+        load_eax(cond);
+
+        fprintf(output_file,
+                "    cmpl $0, %%eax\n");
+
+        fprintf(output_file,
+                "    je .Lcond_else%d\n",
+                label_id);
+
+        /* True branch */
+        load_eax(true_val);
+
+        fprintf(output_file,
+                "    movl %%eax, %s(%%rip)\n",
+                result.name);
+
+        fprintf(output_file,
+                "    jmp .Lcond_end%d\n",
+                label_id);
+
+        /* False branch */
+        fprintf(output_file,
+                ".Lcond_else%d:\n",
+                label_id);
+
+        load_eax(false_val);
+
+        fprintf(output_file,
+                "    movl %%eax, %s(%%rip)\n",
+                result.name);
+
+        fprintf(output_file,
+                ".Lcond_end%d:\n",
+                label_id);
 
         return result;
 }

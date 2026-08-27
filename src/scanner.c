@@ -193,6 +193,13 @@ token scanner(void)
         }
 
         /*
+         * Bar operator for conditional expressions
+         */
+        if (in_char == '|') {
+            return BAROP;
+        }
+
+        /*
          * Assignment operator :=
          */
         if (in_char == ':') {
