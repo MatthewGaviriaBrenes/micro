@@ -1,10 +1,3 @@
-/*
- * Micro Compiler
- * File: semantics.c
- * Responsibility: Persona B
- *
- */
-
 #include <stdio.h>
 #include "semantics.h"
 #include "symtab.h"

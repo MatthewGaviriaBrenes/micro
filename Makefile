@@ -23,4 +23,4 @@ test: $(TARGET)
 	@echo "=== conditional_true.micro ==="
 	./$(TARGET) tests/parser/conditional_true.micro
 	@echo "=== conditional_false.micro ==="
-	./$(TARGET) tests/parser/conditional_false.micro
+	./$(TARGET) tests/parser/conditional_false.micro 

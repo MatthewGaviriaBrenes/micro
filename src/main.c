@@ -1,9 +1,3 @@
-/*
- * Micro Compiler
- * File: main.c
- * Responsibility: Todos
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +14,6 @@
 static void shell_quote(const char *src, char *dest, size_t dest_size)
 {
     size_t di = 0;
-
     dest[di++] = '\'';
     for (size_t i = 0; src[i] != '\0' && di < dest_size - 6; i++) {
         if (src[i] == '\'') {
@@ -60,10 +53,8 @@ static int derive_output_paths(const char *input_path,
 
     memcpy(asm_path, input_path, base_len);
     strcpy(asm_path + base_len, ".s");
-
     memcpy(exe_path, input_path, base_len);
     exe_path[base_len] = '\0';
-
     return 0;
 }
 
@@ -89,7 +80,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* Save the real stdin (terminal) before redirecting it to the source file */
+    /* Save the real stdin before redirecting it to the source file */
     saved_stdin = dup(STDIN_FILENO);
     if (saved_stdin == -1) {
         fprintf(stderr, "Error: could not save stdin\n");

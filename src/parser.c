@@ -1,9 +1,3 @@
-/*
- * Micro Compiler
- * File: parser.c
- * Responsibility: Felipe y Matthew
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
@@ -154,9 +148,7 @@ void statement(void)
             }
 
             match(ASSIGNOP);
-
             result = expression();
-
             assign(target, result);
 
             if (current_token != SEMICOLON) {
@@ -165,7 +157,6 @@ void statement(void)
             }
 
             match(SEMICOLON);
-
             break;
         }
 
@@ -224,7 +215,6 @@ void statement(void)
 void id_list(void)
 {
     expr_rec variable;
-
     variable = process_id(token_buffer);
     match(ID);
 
@@ -248,7 +238,6 @@ void id_list(void)
 void expr_list(void)
 {
     expr_rec result;
-
     result = expression();
 
     if (codegen_is_active()) {
@@ -257,7 +246,6 @@ void expr_list(void)
 
     while (current_token == COMMA) {
         match(COMMA);
-
         result = expression();
 
         if (codegen_is_active()) {
@@ -283,9 +271,7 @@ expr_rec expression(void)
         op = add_op();
         right = primary();
 
-        /*
-         * Constant folding
-         */
+        /* Constant folding */
         if (left.kind == LITERALEXPR &&
             right.kind == LITERALEXPR) {
 
@@ -302,9 +288,7 @@ expr_rec expression(void)
 
         } else {
 
-            /*
-             * Generate runtime expression
-             */
+            /* Generate runtime expression */
             left = generate_infix(left, op, right);
         }
     }

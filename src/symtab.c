@@ -1,10 +1,3 @@
-/*
- * Micro Compiler
- * File: symtab.c
- * Responsibility: Matthew
- *
- */
-
 #include <stdio.h>
 #include <string.h>
 #include "symtab.h"

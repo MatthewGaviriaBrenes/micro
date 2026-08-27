@@ -5,41 +5,29 @@
 #include "semantics.h"
 #include "codegen.h"
 
-/*
- * Current token being analyzed by the parser
- */
+/* Current token being analyzed by the parser */
 extern token current_token;
 
-/*
- * Number of syntax errors found by the parser
- */
+/* Number of syntax errors found by the parser */
 extern int syntax_errors;
 void syntax_error_expected(token expected, token actual);
 
-/*
- * Main parser entry point
- */
+/* Main parser entry point */
 void system_goal(void);
 
-/*
- * Structural grammar routines
- */
+/* Structural grammar routines */
 void program(void);
 void statement_list(void);
 void statement(void);
 void id_list(void);
 void expr_list(void);
 
-/*
- * Expression routines
- */
+/* Expression routines */
 expr_rec expression(void);
 expr_rec primary(void);
 token add_op(void);
 
-/*
- * Parser utility functions
- */
+/* Parser utility functions */
 void match(token expected);
 void syntax_error(token actual);
 
