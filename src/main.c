@@ -29,18 +29,18 @@ static void shell_quote(const char *src, char *dest, size_t dest_size)
     dest[di] = '\0';
 }
 
-/* Build .s and executable paths from the .micro input path */
+/* Build .s and executable paths from the .m input path */
 static int derive_output_paths(const char *input_path,
                                 char *asm_path, size_t asm_size,
                                 char *exe_path, size_t exe_size)
 {
-    const char *ext = ".micro";
+    const char *ext = ".m";
     size_t ext_len = strlen(ext);
     size_t len = strlen(input_path);
     size_t base_len;
 
     if (len <= ext_len || strcmp(input_path + len - ext_len, ext) != 0) {
-        fprintf(stderr, "Error: input file must have a .micro extension\n");
+        fprintf(stderr, "Error: input file must have a .m extension\n");
         return -1;
     }
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     int saved_stdin;
 
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s <program.micro>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <program.m>\n", argv[0]);
         return EXIT_FAILURE;
     }
 

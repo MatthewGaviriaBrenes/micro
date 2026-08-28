@@ -1,0 +1,17 @@
+begin
+    read (NOMBRE_777_LARGO_DE_VARIABLE, J);
+    read(CONTA7456, OTRA_VARIABLE, FECHA);
+    K := NOMBRE_777_LARGO_DE_VARIABLE + J;
+    write(K);
+    write(K + K + NOMBRE_777_LARGO_DE_VARIABLE);
+    CONTA7456 := CONTA7456 + (OTRA_VARIABLE - K) + J;
+    write(CONTA7456);
+    read(K);
+    write(K);
+    K := K + K + K + K - 22 + K + 7 - CONTA7456;
+    J := OTRA_VARIABLE + FECHA - NOMBRE_777_LARGO_DE_VARIABLE;
+    write (CONTA7456, OTRA_VARIABLE, FECHA, NOMBRE_777_LARGO_DE_VARIABLE, J, K);
+end
+
+
+

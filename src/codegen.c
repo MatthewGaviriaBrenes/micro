@@ -350,4 +350,3 @@ void write_expr(expr_rec expression)
         fprintf(output_file,
                 "    call printf@PLT\n");
 }
-

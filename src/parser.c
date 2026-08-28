@@ -313,24 +313,32 @@ expr_rec primary(void)
         return result;
     }
 
-    /* Conditional expression: ( E1 | E2 | E3 ) */
     if (current_token == LPAREN) {
-        expr_rec cond;
-        expr_rec true_val;
-        expr_rec false_val;
+        expr_rec condition;
+        expr_rec true_value;
+        expr_rec false_value;
 
         match(LPAREN);
-        cond = expression();
-        match(BAROP);
-        true_val = expression();
-        match(BAROP);
-        false_val = expression();
-        match(RPAREN);
 
-        return generate_conditional(cond, true_val, false_val);
+        condition = expression();
+
+        if (current_token == BAROP) {
+            match(BAROP);
+            true_value = expression();
+            match(BAROP);
+            false_value = expression();
+            match(RPAREN);
+            return generate_conditional(condition,
+                                        true_value,
+                                        false_value);
+        }
+
+        match(RPAREN);
+        return condition;
     }
 
     syntax_error(current_token);
+
     return process_lit(0);
 }
 
